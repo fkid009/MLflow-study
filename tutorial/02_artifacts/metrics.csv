@@ -1,0 +1,6 @@
+step,val_acc,tag
+0,0.72,warmup
+1,0.75,phase1
+2,0.78,phase1
+3,0.8,phase2
+4,0.81,phase2

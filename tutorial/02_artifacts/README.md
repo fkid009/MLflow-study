@@ -1,7 +1,3 @@
-Here you go—drop this into `examples/02_artifacts/README.md`.
-
----
-
 # 02 – Artifacts (Logging text/dict/CSV/table/image)
 
 The goal of this example is to **learn how to log artifacts to MLflow correctly**.

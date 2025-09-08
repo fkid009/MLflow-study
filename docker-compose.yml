@@ -64,6 +64,7 @@ services:
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
       MLFLOW_S3_ENDPOINT_URL: http://minio:${MINIO_API_PORT}
+      PYTHONPATH: /work 
     working_dir: /work
     volumes:
       - ./:/work

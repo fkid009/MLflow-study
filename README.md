@@ -13,10 +13,10 @@ It ships a ready-to-run **Docker Compose file** (MLflow Server + Postgres + MinI
 ## Stack & Architecture
 
 ```mermaid
-flowchart TD
-    Dev[Trainer (your code)] -->|log params/metrics/artifacts| ML[MLflow Server (UI/API)]
-    ML --> PG[(Postgres - metadata)]
-    ML --> S3[(MinIO - artifact store)]
+graph TD
+  DEV[Trainer] -->|logs| ML[MLflow Server]
+  ML --> PG[(Postgres)]
+  ML --> MIN[(MinIO)]
 ```
 
 * **MLflow Server**: central tracking server & UI (`http://localhost:5000`)

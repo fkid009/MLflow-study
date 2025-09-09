@@ -9,7 +9,7 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT}:5432"
-    healthcheck:                            
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
@@ -26,7 +26,7 @@ services:
     ports:
       - "${MINIO_API_PORT}:9000"
       - "${MINIO_CONSOLE_PORT}:9001"
-    healthcheck:                            
+    healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
       interval: 5s
       timeout: 5s
@@ -36,8 +36,8 @@ services:
     image: minio/mc:RELEASE.2024-07-31T15-58-33Z-cpuv1
     depends_on:
       minio:
-        condition: service_healthy        
-    entrypoint: >                          
+        condition: service_healthy
+    entrypoint: >
       /bin/sh -eu -c "
         echo 'Waiting for MinIO...';
         until mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; do
@@ -59,20 +59,24 @@ services:
       dockerfile: Dockerfile
     depends_on:
       postgres:
-        condition: service_healthy         
+        condition: service_healthy
       createbuckets:
-        condition: service_completed_successfully   
+        condition: service_completed_successfully
     environment:
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000     
-      AWS_S3_FORCE_PATH_STYLE: "true"              
-      AWS_DEFAULT_REGION: "us-east-1"               
-      MLFLOW_ARTIFACT_BUCKET: ${MLFLOW_ARTIFACT_BUCKET}  
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ENDPOINT_URL_S3: http://minio:9000
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      AWS_DEFAULT_REGION: "us-east-1"
+      MLFLOW_S3_IGNORE_TLS: "true"           
+      MLFLOW_ARTIFACT_BUCKET: ${MLFLOW_ARTIFACT_BUCKET}
     command: >
       mlflow server
       --backend-store-uri postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      --default-artifact-root s3://${MLFLOW_ARTIFACT_BUCKET}
+      --registry-store-uri postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      --artifacts-destination s3://${MLFLOW_ARTIFACT_BUCKET}
+      --serve-artifacts
       --host 0.0.0.0
       --port 5000
     ports:
@@ -81,18 +85,20 @@ services:
   trainer:
     build:
       context: .
-      dockerfile: Dockerfile
     depends_on:
-      - mlflow
+      mlflow:
+        condition: service_started
     environment:
-      MLFLOW_TRACKING_URI: http://mlflow:5000       
+      MLFLOW_TRACKING_URI: http://mlflow:5000
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000     
-      AWS_S3_FORCE_PATH_STYLE: "true"               
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ENDPOINT_URL_S3: http://minio:9000
+      AWS_S3_FORCE_PATH_STYLE: "true"
       AWS_DEFAULT_REGION: "us-east-1"
+      MLFLOW_S3_IGNORE_TLS: "true"
       MLFLOW_ARTIFACT_BUCKET: ${MLFLOW_ARTIFACT_BUCKET}
-      PYTHONPATH: /work 
+      PYTHONPATH: /work
     working_dir: /work
     volumes:
       - ./:/work

@@ -69,16 +69,16 @@ services:
       AWS_ENDPOINT_URL_S3: http://minio:9000
       AWS_S3_FORCE_PATH_STYLE: "true"
       AWS_DEFAULT_REGION: "us-east-1"
-      MLFLOW_S3_IGNORE_TLS: "true"           
+      MLFLOW_S3_IGNORE_TLS: "true"
       MLFLOW_ARTIFACT_BUCKET: ${MLFLOW_ARTIFACT_BUCKET}
     command: >
       mlflow server
       --backend-store-uri postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       --registry-store-uri postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      --artifacts-destination s3://${MLFLOW_ARTIFACT_BUCKET}
-      --serve-artifacts
+      --artifacts-destination s3://${MLFLOW_ARTIFACT_BUCKET:-mlflow-artifacts}
       --host 0.0.0.0
       --port 5000
+      --serve-artifacts
     ports:
       - "${MLFLOW_PORT}:5000"
 
